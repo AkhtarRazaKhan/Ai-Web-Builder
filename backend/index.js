@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin:'https://doraai-1.onrender.com',
+    origin:'https://ai-web-builder-1-gwfj.onrender.com',
     credentials:true
 }))
 
