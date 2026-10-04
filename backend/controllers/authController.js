@@ -3,25 +3,81 @@ import jwt from "jsonwebtoken";
 
 export const googleAuth = async (req, res) => {
     try {
-        const { name, email, avatar } = req.body;
+        console.log("========== GOOGLE AUTH ==========");
 
+        console.log(
+            "BODY RECEIVED:",
+            req.body
+        );
+
+        const {
+            name,
+            email,
+            avatar,
+        } = req.body;
+
+        // Validate email
         if (!email) {
+            console.log(
+                "❌ Email missing from request"
+            );
+
             return res.status(400).json({
                 success: false,
-                message: "Google email is required",
+                message:
+                    "Google email is required.",
             });
         }
 
-        let user = await User.findOne({ email });
+        // Check SECRET_KEY
+        if (!process.env.SECRET_KEY) {
+            console.error(
+                "❌ SECRET_KEY is missing"
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "SECRET_KEY is not configured on server.",
+            });
+        }
+
+        console.log(
+            "Searching user:",
+            email
+        );
+
+        let user = await User.findOne({
+            email,
+        });
 
         if (!user) {
+            console.log(
+                "User not found. Creating..."
+            );
+
             user = await User.create({
-                name: name || "Google User",
+                name:
+                    name || "Google User",
+
                 email,
-                avatar: avatar || "",
+
+                avatar:
+                    avatar || "",
             });
+
+            console.log(
+                "User created:",
+                user._id
+            );
+        } else {
+            console.log(
+                "Existing user:",
+                user._id
+            );
         }
 
+        // Generate JWT
         const token = jwt.sign(
             {
                 id: user._id,
@@ -32,44 +88,44 @@ export const googleAuth = async (req, res) => {
             }
         );
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        console.log(
+            "JWT generated successfully"
+        );
+
+        // Set cookie
+        res.cookie(
+            "token",
+            token,
+            {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                maxAge:
+                    7 *
+                    24 *
+                    60 *
+                    60 *
+                    1000,
+            }
+        );
+
+        console.log(
+            "Cookie set successfully"
+        );
 
         return res.status(200).json(user);
 
     } catch (error) {
-        console.error("Google Auth Error:", error);
+        console.error(
+            "🔥 GOOGLE AUTH ERROR:",
+            error
+        );
 
         return res.status(500).json({
             success: false,
-            message: error.message,
-        });
-    }
-};
-
-export const logoutUser = async (_, res) => {
-    try {
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "User Logout Successfully",
-        });
-
-    } catch (error) {
-        console.error("Logout Error:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: error.message,
+            message:
+                error.message ||
+                "Google authentication failed.",
         });
     }
 };
