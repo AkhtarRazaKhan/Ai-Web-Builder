@@ -16,8 +16,7 @@ const PORT = process.env.PORT || 3000;
 // CORS
 app.use(
     cors({
-        origin:
-            "https://ai-web-builder-1-gwfj.onrender.com",
+        origin: "https://ai-web-builder-1-gwfj.onrender.com",
         credentials: true,
     })
 );
@@ -33,66 +32,45 @@ app.use(
 
 app.use(cookieParser());
 
-// Test
+// Test route
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
-        message:
-            "AI Web Builder API is running",
+        message: "AI Web Builder API is running",
     });
 });
 
 // Routes
-app.use(
-    "/api/auth",
-    authRoute
-);
-
-app.use(
-    "/api/website",
-    websiteRoute
-);
-
-app.use(
-    "/api/payment",
-    paymentRoute
-);
+app.use("/api/auth", authRoute);
+app.use("/api/website", websiteRoute);
+app.use("/api/payment", paymentRoute);
 
 // Error handler
-app.use(
-    (error, req, res, next) => {
-        console.error(
-            "SERVER ERROR:",
-            error
-        );
+app.use((error, req, res, next) => {
+    console.error("SERVER ERROR:", error);
 
-        return res.status(500).json({
-            success: false,
-            message:
-                error.message ||
-                "Internal Server Error",
-        });
-    }
-);
+    res.status(500).json({
+        success: false,
+        message:
+            error.message || "Internal Server Error",
+    });
+});
 
-// Start server
+// Start server only after MongoDB connects
 const startServer = async () => {
     try {
         await connectDB();
 
-        app.listen(
-            PORT,
-            () => {
-                console.log(
-                    `Server is listening at port: ${PORT}`
-                );
-            }
-        );
+        app.listen(PORT, () => {
+            console.log(
+                `Server is listening at port: ${PORT}`
+            );
+        });
 
     } catch (error) {
         console.error(
-            "Database connection failed:",
-            error
+            "Server startup failed:",
+            error.message
         );
 
         process.exit(1);
